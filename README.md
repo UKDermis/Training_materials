@@ -1,4 +1,4 @@
-# Training_materials
+# Training materials
 
 Useful materials on the basics of data handling, visualization, and analyses (mainly in R, maybe also in Python and Julia).
 
