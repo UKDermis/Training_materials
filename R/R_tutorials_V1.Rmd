@@ -1,0 +1,426 @@
+---
+title: "R tutorials"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(error = TRUE)
+```
+
+```{r eval=FALSE, echo=FALSE, warning=FALSE, fig.width=5, fig.height=5, error=FALSE, message=FALSE}
+
+N = 100
+xx = rnorm(N, 10, 2)
+yy = xx*3.1415 + rnorm(N, 0, 5)
+asd = data.frame(y=yy, x=xx, z = rnorm(N, 2.72*3.14, 2.9))
+
+scatterplotMatrix(asd)
+
+for(i in 1:nrow(asd)){
+  if(asd[i,"y"]>30){
+    asd[i,"group"] = sample(x = LETTERS[1:2], size = 1, prob = c(0.8, 0.2))
+  }else{
+    asd[i,"group"] = sample(x = LETTERS[1:2], size = 1, prob = c(0.2, 0.8))
+  }
+}
+write.table(asd, "/home/jensen/All_Important_Stuff/Tan/R/example_table_CSV.csv", sep=";", row.names = F)
+
+```
+
+```{r echo=FALSE}
+df = read.csv("/home/jensen/All_Important_Stuff/Tan/R/example_table_CSV.csv", sep=";")
+```
+
+# R basics
+
+## The R environment
+
+R is an object-oriented statistical programming environment / language. This means that everything in R can be categorized into specific types, and/or classes. R is practically it is a language in the sense that it uses a very specific and strict syntax (set of words and rules on how to use the words), and the syntax is used in the forms of "commands", i.e. when you formulate a specific instruction in the syntax of R, you'll have to put that into the "prompt" (console), and after hitting enter, R will carry out (or, more formally speaking, "execute") the command, and provide the adequate output. When there is any kind of misspecification, the R prompt will give feedback, in the form of either a "Warning", or an "Error":
+
+```{r echo=FALSE}
+
+warning("This is a warning!")
+
+stop("This is an error!")
+
+```
+
+Warnings can originate from milder mistakes, which do not prohibit the execution of the function itself, but warrants caution for some reason. Errors are more severe, and prohibit the execution completely.
+
+## Functions
+
+The main building blocks are called **functions**, which usually have the following form:
+
+```{r eval=FALSE}
+
+example.function()
+
+```
+
+I.e. the name of the function (*example.function* in the above example), followed by parentheses. These functions use inputs and arguments to carry out a specific task, and these inputs and arguments are specified within the parentheses. All such functions have a helping material, which can be assessed by typing "?" and the name of the function. For example, the help page for the function "cor.test" can be assessed as:
+
+```{r eval=FALSE}
+
+?cor.test
+
+```
+
+Alternatively, you can use an internal **function** to gather information about other functions:
+
+```{r}
+help(cor.test)
+```
+
+Note that when you want to access the helping material for a function, the parentheses are not necessary. The output of the above command starts with the basic usage of the queried function:
+
+```{r eval=FALSE}
+
+## Default S3 method:
+cor.test(x, y,
+         alternative = c("two.sided", "less", "greater"),
+         method = c("pearson", "kendall", "spearman"),
+         exact = NULL, conf.level = 0.95, continuity = FALSE, ...)
+
+
+```
+
+Above are visible the arguments, which are specific to the "cor.test" function. In the help there is also detailed description for each of the argument, regarding what they are, what kind of input do they expect, are they mandatory or optional, etc.
+
+## Variables
+
+Another important term (which is important in general throughout programming) is the "variable". A variable is practically a name for a value, that we can use to refer to specific values or objects within R. In every case, we can assign values to a variable as:
+
+```{r}
+v1 <- 3.141592
+v2 = "In a wider sense, this is a value too."
+```
+
+I.e. we can assign values to variables either using "<-" or "=". Then, can simply write these variable names in the prompt, and hit enter, which will print their values (the content of the given variable) into the prompt:
+
+```{r}
+v1
+v2
+```
+
+Types and classes were already mentioned. These are practically "meta-data" for the variables, i.e. they describe what kinds of variables do we have. This is important, because some operations or functions can be executed only on specific types or classes of variables. This is quite logical: if we want to carry out mathematical calculations, we need numbers for that.
+
+We can check the type and class of any variable using the "typeof" and "class" functions as:
+
+```{r}
+
+typeof(v1)
+class(v1)
+
+typeof(v2)
+class(v2)
+
+```
+
+Numbers / numericals are usually saved in variables of type "double", which is simply how R handles real numbers. (There is also the type of "integers", i.e. discrete numerical values, but these usually have to be specifically set.) 
+
+We can also explicitly test if a given variable belongs to a specific type or class, using basic functions of R:
+
+```{r}
+is.numeric(v1)
+is.numeric(v2)
+
+is.character(v1)
+is.character(v2)
+```
+
+These functions provide us with logical outputs, stating if the given variable is (TRUE) or isn't (FALSE) of the specifically tested type or class. By the way, we can also test the output in such a way, either directly, or indirectly. When checking directly, we just include the function for the "to-be-tested" value:
+
+```{r}
+is.logical(is.numeric(v1))
+```
+
+or we can first save the output of the function into a new variable, then use this new variable:
+
+```{r}
+isnum1 = is.numeric(v1)
+is.logical(isnum1)
+```
+
+Type (a.k.a. "mode") of an object refers to how it is stored by the R environment, which is a technical detail. Class is more important for us, as it represents the variable's (or, to be more precise, the object's) so-called "abstract type", which is a fancy way of saying, the "human interpretable type". Most important classes include (but are not limited to):
+
+* numeric: all kinds of numbers, from real numbers ("double") to integers
+* character: any kind of text or value specified with double-quotation marks (see the **v2** variable above)
+* factor: similar to characters, but can include any kinds of values, and the variable must have a pre-specified set of values
+* list: a congregate of values, in which values can have all kinds of types/classes
+* matrix: a two-dimensional array, practically a simple table, in which only one type of values can be included (e.g. only values, or only characters)
+* data frame: a more flexible table format; the most important basic element of data handling and analyses in R
+
+For matrix and data frame variables, an important thing is that the conventional usage is:
+
+ * rows represent samples
+ * columns represent "features" or variables of interest
+
+An example
+
+## Libraries
+
+There are so-called libraries, which are R-packages that include self-contained functions or groups of functions, that were developed with specific aims. Such an aim can be quite general (e.g. basic statistical tools, such as the R-package ***stats***), or can be very topic-specific (e.g. Conover-Iman non-parametric test of group-differences, such as the R-package ***conover.test***).
+
+For R to be able to use the functions of such packages, they have to be installed and imported:
+
+```{r eval=FALSE}
+install.packages("conover.test")
+```
+
+Note again in the above case that R uses an internal **function** even for installing new packages / libraries. To be able to access the functions within the the installed libraries, we can import it in one of the two ways shown below:
+
+```{r}
+library(conover.test)
+require(conover.test)
+```
+
+In basic R usage it doesn't really matter which method you use.
+
+It is not crucial to know or to use every time, but can be useful to know that functions from specific libraries can be explicitly addressed, by using the library name, then "::", and the name of the function, e.g.:
+
+```{r eval=FALSE}
+stats::cor.test()
+conover.test::conover.test()
+```
+
+This can be important when two different libraries have functions with the same name, which makes their usage more difficult.
+
+
+# Libraries to install
+
+For practice, and of course for later usage, let's install some important packages, that will come in handy later. First, use either the "?" or the "help" function to see how the "install.packages" function works!
+
+```{r eval=FALSE}
+?install.packages
+```
+
+Then use it to install the packages we want:
+
+```{r eval=FALSE}
+install.packages("tidyr", dependencies = T)
+install.packages("readxl", dependencies = T)
+install.packages("ggplot2", dependencies = T)
+```
+
+# Data handling
+
+## Importing data
+
+In general, data to be imported should be in the conventional data frame format (as mentioned above: rows = observations, columns = variables). Also, due to the "Anglo-Saxon" convention, in real numbers the decimal position is denoted with ".", e.g.:
+
+```{r}
+a = 5/2
+a
+```
+
+Therefore when importing a data table, either in the real numbers the decimals should be denoted with ".", or we have to explicitly specify the decimal character during data import (see below). This is important, because if we have our numerical data in e.g. "3,14" format, R by default will take the values as character or factor, not in numbers (because it expects "3.14")!
+
+Usually data is in CSV (comma-separated values) or TSV (tab-separated values) files. These are simple text files, in which columns are separated with a pre-specified charcater, usually "," or ";" or tab. These can be imported as:
+
+```{r eval=FALSE}
+read.csv("csv_table.csv", sep = ",", dec = ".") # for "," separated columns, with "." decimal
+read.csv("csv_table.csv", sep = ";", dec = ",") # for ";" separated columns, with "," decimal
+read.csv("csv_table.csv", sep = "\t") # for tab separated columns
+```
+
+Conveniently, there is an R-package for importing XLS(X) files as well, which we just installed (see above):
+
+```{r eval=FALSE}
+library(readxl)
+read_xlsx("XLSX_table.xlsx")
+```
+
+Of course, we want to work with our table, therefore we save it in a variable, e.g.:
+
+```{r eval=FALSE}
+df = read.csv("example_table_CSV.csv", sep=";")
+```
+
+As first steps, it is always recommended to check the imported data frame, to see if it was imported properly, and to see its basic content:
+
+```{r}
+
+head(df)
+
+```
+
+Rows and columns look fine. We can also check a summary of the data frame's content:
+
+```{r}
+
+summary(df)
+
+```
+
+We can also check the basic dimensions of the data frame, i.e. the number of rows and columns:
+
+```{r}
+dim(df)
+```
+
+This can be done separately as well:
+
+```{r}
+nrow(df) # number of rows
+ncol(df) # number of columns
+```
+
+## Referencing
+
+Our data frame is practically a list of ***m*** variables, where ***m*** is the number of columns. During data import, R automatically assigns these variables to specific classes, based on their contents.
+
+We can reference to specific variables in our data frame with the "\$" sign, using the data frame's name, then "\$", then the column name (i.e. variable name) of interest:
+
+```{r eval=FALSE}
+df$y
+```
+
+We can also reference to a subset of values, using logical conditions. This works with the square brackets "[ ]", which should contain either a form of indexing (e.g. number of row or column, or name of row or columns). For data frames, we use a "," within the square bracket, because the data frame has two dimensions (rows and columns) along which we can use indexing. This is done in the format "[,]", where indices **before** the "," refer to rows, whereas indices **after** the "," refer to columns:
+
+```{r eval=FALSE}
+df[1,] # first row
+df[,1] # first column
+
+df[,"y"] # indexing column with its name
+```
+
+We can specify a range of indices too:
+
+```{r eval=FALSE}
+df[1:10,] # first 10 rows, i.e. rows from 1 to 10
+df[,2:3] # second and third columns, i.e. columns from 2 to 3
+```
+
+We can use so-called vectors as well for indexing. Vectors are created with "c()", in which we just put the elements to be had:
+
+```{r eval=FALSE}
+df[c(1,4,5),] # specifying rows 1, 4, 5
+df[,c("x", "y")] # specifying columns x and y
+```
+
+Or, if the vector is saved in a variable:
+
+```{r eval=FALSE}
+r.index = c(1,4,5)
+c.index = c("x", "y")
+df[r.index,] # specifying rows 1, 4, 5
+df[,c.index] # specifying columns x and y
+```
+
+Of course, we can use multiple indices, based on what we need. If, for example, we only need the the first 12 rows for the variables (columns) "x" and "y":
+
+```{r eval=FALSE}
+df[1:12,c("x", "y")]
+```
+
+Apart from indexing, we can use conditions; in such cases, we are interested in the values of one given variable, depending on values of another variable. For example, if we are interested in only those "y" values that belong to the group "A", we use:
+
+```{r eval=FALSE}
+df$y[df$group=="A"]
+```
+
+Conversely, we can access those "y" values that are paired with "x" values lower, greater, or equal to, a specific value of our choice:
+
+```{r eval=FALSE}
+df$y[df$x<10]
+df$y[df$x>10]
+```
+
+Note that in this case **we did not use ","** within the brackets! This is because we refer to a specific column in the data frame (e.g. "df\$x"), which is practically a vector, and a vector has only **one dimension** (its length). Hence, only one index position is needed within the "[]". (Recall that we said that a data frame is practically a list of variables, and each variable (column) is practically a vector, i.e. a series of values.) In this case, we are practically using an indexing with logical indices, which is a vector of logical values (TRUE or FALSE). We can actually check this out, using only the condition:
+
+```{r}
+df$x<10
+```
+
+There is, of course, an alternative solution for the conditional indexing:
+
+```{r eval=FALSE}
+df[df$x<10,"y"]
+```
+
+
+## Data visualization
+
+For simple data visualization, we can use: 
+
+* "plot": creating scatter plot for two numerical variables
+* "boxplot": visualizing the value distributions separately for groups
+* "barplot": simply visualizing numerical values
+
+```{r}
+
+# scatterplot
+plot(df$x, df$y)
+
+# boxplot
+boxplot(df$y ~ df$group)
+
+# same boxplot, but with alternative solution
+boxplot(df$y[df$group=="A"], df$y[df$group=="B"])
+
+# barplot for the number of group levels
+df.t = table(df$group)
+barplot(df.t)
+
+```
+
+Also
+
+More sophisticated visualizations can be achieved with functions of the ***ggplot2***:
+
+```{r}
+
+library(ggplot2)
+
+# scatterplot
+print(
+  ggplot(data = df, mapping = aes(x = x, y = y, color = group)) +
+    geom_point()
+)
+
+# scatterplot separately for groups
+print(
+  ggplot(data = df, mapping = aes(x = x, y = y, color = group)) +
+    geom_point() +
+    facet_wrap(~group)
+)
+
+# boxplot
+print(
+  ggplot(data = df, mapping = aes(x = group, y = y, color = group)) +
+    geom_boxplot()
+)
+
+# barplot
+df.t.2 = as.data.frame(table(df$group))
+print(
+  ggplot(data = df.t.2, mapping = aes(x = Var1, y = Freq)) +
+    geom_bar(stat = "identity")
+)
+
+```
+
+We can plot a subset of our data too. For example if we only want the scatter plot for group "A":
+
+```{r}
+
+# scatterplot
+print(
+  ggplot(data = df[df$group=="A",], mapping = aes(x = x, y = y, color = group)) +
+    geom_point()
+)
+
+```
+
+Find more information about basic usage off ***ggplot2*** on [this link](https://www.dataquest.io/blog/data-visualization-in-r-with-ggplot2-a-beginner-tutorial/).
+
+## Data manipulation
+
+Coming soon...
+
+# Analyses
+
+Coming soon...
